@@ -23,7 +23,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import InfoIcon from '@mui/icons-material/Info';
 import Papa from 'papaparse';
-import axios from 'axios';
+import axios from '../services/api';
 
 interface Entry {
   phone: string;
