@@ -1,0 +1,8 @@
+{
+  "appPath": "src/client",
+  "appBuild": "dist",
+  "appPublic": "public",
+  "appHtml": "public/index.html",
+  "appIndexJs": "src/client/index.tsx",
+  "appSrc": "src/client"
+} 

@@ -1,88 +1,94 @@
-# KingVV App
+# CRM Screen Pop Tool
 
-React application for handling phone number to CRM URL redirections.
+## Project Overview
+Internal tool for employees within company firewall that redirects phone numbers to corresponding CRM URLs.
 
-## Setup
+### Key Features
+- Visit `/redirect/{phone_number}` to get redirected to corresponding CRM URL
+- Web interface for managing phone-to-URL mappings
+- SQL Server database for storage
+- All components run on internal network
 
-1. Install dependencies:
+## Current Status
+
+### What's Working
+- ✅ Database connection to KFG_Server\SQLEXPRESS confirmed
+- ✅ Table structure: entries(phone VARCHAR(20), url VARCHAR(500))
+- ✅ Test data verified: phone=2065550199, url=https://test-crm.com/contact/test123
+- ✅ CRUD operations tested successfully
+- ✅ Project structure and files set up
+- ✅ Configuration files created
+
+### Current Issues
+- ⚠️ Server startup issues with module system (ES Modules vs CommonJS conflict)
+- ⚠️ TypeScript type checking errors in server code
+- ⚠️ Need to resolve path and directory issues
+
+## Next Steps
+1. Restart Cursor using the workspace configuration file:
+   - Open `crmpop/crmpop.code-workspace`
+   - This will ensure correct directory and TypeScript settings
+
+2. Fix server startup issues:
+   - Resolve module system conflicts
+   - Address TypeScript configuration
+   - Test server connectivity
+
+3. Implement remaining features:
+   - Complete phone number redirect endpoint
+   - Build management interface
+   - Add authentication
+   - Set up logging
+
+## Development Setup
+
+### Prerequisites
+- Node.js 18.x LTS
+- SQL Server Express 2019
+- Access to internal network
+
+### Configuration Files
+- `.vscode/settings.json` - Editor and TypeScript settings
+- `crmpop.code-workspace` - Workspace configuration
+- `tsconfig.json` - TypeScript configuration for client
+- `tsconfig.server.json` - TypeScript configuration for server
+- `.npmrc` - NPM configuration
+
+### Environment Variables
+```env
+DB_HOST=KFG_Server\SQLEXPRESS
+DB_NAME=KingVVApp
+DB_USER=KingVictorVector
+DB_PASSWORD=your_password_here
+PORT=3001
+NODE_ENV=development
+```
+
+### Running the Project
 ```bash
+# Install dependencies
 npm install
+
+# Start development server
+npm run dev
+
+# Start server only
+npm run server
+
+# Start client only
+npm run start
 ```
 
-2. Create a `.env` file in the root directory with the following content:
+## Database Schema
+```sql
+CREATE TABLE entries (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    phone VARCHAR(20) NOT NULL,
+    url VARCHAR(500) NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    CONSTRAINT UQ_phone_number UNIQUE (phone)
+);
 ```
-REACT_APP_SQL_SERVER=KFG_Server
-REACT_APP_SQL_DATABASE=KingVVApp
-REACT_APP_SQL_INSTANCE=SQLEXPRESS
-```
-
-3. Start the development server:
-```bash
-npm start
-```
-
-## Build for Production
-
-1. Create production build:
-```bash
-npm run build
-```
-
-2. Deploy the contents of the `build` folder to IIS on KFG_Server
-
-## Features
-
-- Phone number to CRM URL redirection
-- Management interface for URL mappings
-- SQL Server backend integration
-- Internal network deployment
-
-## Requirements
-
-- Node.js 16+
-- SQL Server Express
-- Windows Server with IIS
-
-## Development Progress
-
-✅ Completed:
-- Database connection established and tested
-- Basic CRUD operations implemented
-- Frontend UI with Material-UI components
-- Phone number to CRM URL mapping functionality
-- Redirect endpoint functionality
-- Git repository initialized
-- Development environment tested
-- Production build configuration
-- TypeScript ESM configuration
-
-🔄 In Progress:
-- UI entry creation debugging
-- Production environment testing
-- Performance optimization
-
-🔜 Next Steps:
-- Load testing with multiple concurrent users
-- Monitoring setup
-- Backup procedures implementation
-
-## Current Status (Last Updated: Current Session)
-
-### What Works
-- ✅ SQL Server connection established and tested
-- ✅ Database table 'entries' created successfully
-- ✅ React TypeScript frontend with Material-UI
-- ✅ Production build configuration
-- ✅ Server-side TypeScript compilation
-- ✅ Static file serving
-- ✅ API routes implemented
-- ✅ Development environment
-
-### Pending
-- ⏳ Fix entry creation through UI
-- Testing of batch upload functionality
-- Testing of redirect functionality
-- Production deployment testing
 
 ## Features
 

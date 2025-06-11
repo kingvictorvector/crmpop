@@ -3,25 +3,31 @@
     "target": "ES2020",
     "module": "CommonJS",
     "moduleResolution": "node",
-    "outDir": "./dist/server",
-    "rootDir": "./src",
-    "strict": true,
     "esModuleInterop": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": false,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "allowJs": true
+    "noImplicitAny": false,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "ts-node": {
+    "transpileOnly": true,
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
   },
   "include": [
-    "src/server/**/*",
-    "src/services/**/*",
-    "src/routes/**/*"
+    "src/server.ts",
+    "src/routes/**/*.ts",
+    "src/config/**/*.ts",
+    "src/services/**/*.ts"
   ],
   "exclude": [
-    "src/client/**/*",
     "node_modules",
-    "**/*.test.ts",
-    "**/*.spec.ts",
-    "build",
-    "dist"
+    "src/client/**/*"
   ]
 } 

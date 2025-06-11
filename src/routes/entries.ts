@@ -1,92 +1,61 @@
 import express from 'express';
-import { getEntries, addEntry, deleteEntry, addBatchEntries, Entry } from '../services/database.js';
+import { sql, config } from '../config/database';
 
 const router = express.Router();
 
 // Get all entries
 router.get('/', async (req, res) => {
   try {
-    console.log('GET /api/entries - Fetching all entries');
-    const entries = await getEntries();
-    console.log('Entries fetched:', entries);
-    res.json(entries);
-  } catch (error) {
-    console.error('Error getting entries:', error);
-    if (error instanceof Error) {
-      console.error('Error details:', error.message);
-      console.error('Error stack:', error.stack);
-    }
-    res.status(500).json({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' });
+    const pool = await sql.connect(config);
+    const result = await pool.request().query('SELECT * FROM entries');
+    res.json(result.recordset);
+  } catch (err) {
+    console.error('Error fetching entries:', err);
+    res.status(500).json({ error: 'Failed to fetch entries' });
   }
 });
 
-// Add a new entry
+// Add new entry
 router.post('/', async (req, res) => {
-  try {
-    console.log('POST /api/entries - Adding new entry');
-    const entry: Entry = req.body;
-    console.log('Received entry:', entry);
-    
-    if (!entry.phone || !entry.url) {
-      console.error('Validation failed:', { phone: entry.phone, url: entry.url });
-      return res.status(400).json({ error: 'Phone and URL are required' });
-    }
+  const { phone, url } = req.body;
+  
+  if (!phone || !url) {
+    return res.status(400).json({ error: 'Phone number and URL are required' });
+  }
 
-    await addEntry(entry);
-    console.log('Entry added successfully:', entry);
+  try {
+    const pool = await sql.connect(config);
+    await pool.request()
+      .input('phone', sql.VarChar(20), phone)
+      .input('url', sql.VarChar(500), url)
+      .query('INSERT INTO entries (phone, url) VALUES (@phone, @url)');
+    
     res.status(201).json({ message: 'Entry added successfully' });
-  } catch (error) {
-    console.error('Error adding entry:', error);
-    if (error instanceof Error) {
-      console.error('Error details:', error.message);
-      console.error('Error stack:', error.stack);
-    }
-    res.status(500).json({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' });
+  } catch (err) {
+    console.error('Error adding entry:', err);
+    res.status(500).json({ error: 'Failed to add entry' });
   }
 });
 
-// Delete an entry
+// Delete entry
 router.delete('/:phone', async (req, res) => {
+  const { phone } = req.params;
+  
   try {
-    console.log('DELETE /api/entries/:phone - Deleting entry');
-    const { phone } = req.params;
-    console.log('Deleting phone:', phone);
-    await deleteEntry(phone);
-    console.log('Entry deleted successfully:', phone);
+    const pool = await sql.connect(config);
+    const result = await pool.request()
+      .input('phone', sql.VarChar(20), phone)
+      .query('DELETE FROM entries WHERE phone = @phone');
+    
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).json({ error: 'Entry not found' });
+    }
+    
     res.json({ message: 'Entry deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting entry:', error);
-    if (error instanceof Error) {
-      console.error('Error details:', error.message);
-      console.error('Error stack:', error.stack);
-    }
-    res.status(500).json({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' });
+  } catch (err) {
+    console.error('Error deleting entry:', err);
+    res.status(500).json({ error: 'Failed to delete entry' });
   }
 });
 
-// Batch upload entries
-router.post('/batch', async (req, res) => {
-  try {
-    console.log('POST /api/entries/batch - Adding batch entries');
-    const { entries } = req.body;
-    console.log('Received entries:', entries);
-    
-    if (!Array.isArray(entries)) {
-      console.error('Invalid request: entries is not an array');
-      return res.status(400).json({ error: 'Entries must be an array' });
-    }
-    
-    await addBatchEntries(entries);
-    console.log('Batch entries added successfully');
-    res.status(201).json({ message: 'Entries added successfully' });
-  } catch (error) {
-    console.error('Error adding batch entries:', error);
-    if (error instanceof Error) {
-      console.error('Error details:', error.message);
-      console.error('Error stack:', error.stack);
-    }
-    res.status(500).json({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' });
-  }
-});
-
-export default router; 
+export { router as entriesRouter }; 

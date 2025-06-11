@@ -9,6 +9,7 @@
 # production
 /build
 /dist
+/build-temp
 
 # misc
 .DS_Store
@@ -31,6 +32,10 @@ yarn-error.log*
 # Temporary files
 *.tmp
 *.temp
+*.lock
 
 # Debug logs
-debug.log 
+debug.log
+
+# Test data
+test-*.csv 
