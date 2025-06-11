@@ -1,33 +1,32 @@
-# Dependencies
-node_modules/
+# dependencies
+/node_modules
 /.pnp
 .pnp.js
 
-# Production build
-/dist
-/build
+# testing
+/coverage
 
-# Environment files
+# production
+/build
+/dist
+
+# misc
+.DS_Store
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# IDE and editor files
+# IDE
 .idea/
 .vscode/
 *.swp
 *.swo
-.DS_Store
-
-# Testing
-/coverage
 
 # Temporary files
 *.tmp

@@ -1,6 +1,47 @@
-# CRM Screen Pop Tool
+# KingVV App
 
-A web-based tool for managing CRM redirects based on phone numbers. This application runs on a single server and provides browser-based access for all employees.
+React application for handling phone number to CRM URL redirections.
+
+## Setup
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Create a `.env` file in the root directory with the following content:
+```
+REACT_APP_SQL_SERVER=KFG_Server
+REACT_APP_SQL_DATABASE=KingVVApp
+REACT_APP_SQL_INSTANCE=SQLEXPRESS
+```
+
+3. Start the development server:
+```bash
+npm start
+```
+
+## Build for Production
+
+1. Create production build:
+```bash
+npm run build
+```
+
+2. Deploy the contents of the `build` folder to IIS on KFG_Server
+
+## Features
+
+- Phone number to CRM URL redirection
+- Management interface for URL mappings
+- SQL Server backend integration
+- Internal network deployment
+
+## Requirements
+
+- Node.js 16+
+- SQL Server Express
+- Windows Server with IIS
 
 ## Development Progress
 

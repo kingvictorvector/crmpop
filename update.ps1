@@ -18,6 +18,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Installing dependencies..."
+# Force TypeScript to version 4.9.5 for react-scripts compatibility
+npm install typescript@4.9.5 --save-exact
 npm install --verbose
 if ($LASTEXITCODE -ne 0) {
     Write-Error "npm install failed"
@@ -34,6 +36,7 @@ if (Test-Path "build") {
 
 Write-Host "Building client..."
 $env:CI = "false"  # Prevents treating warnings as errors
+$env:SKIP_PREFLIGHT_CHECK = "true"  # Skip TypeScript version check
 npm run build:client --verbose
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Client build failed"
