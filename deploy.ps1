@@ -8,11 +8,11 @@ if (-not $?) {
 # Verify if we're in a Git repository
 if (-not (Test-Path .git)) {
     Write-Host "Initializing fresh Git clone..."
-    git clone https://github.com/kingvictorvector/kingvv-app.git .
+    git clone https://github.com/kingvictorvector/crmpop.git .
 } else {
     Write-Host "Updating existing repository..."
     git fetch
-    git reset --hard origin/main  # or whatever your main branch is named
+    git reset --hard origin/main
 }
 
 # Stop any existing node processes on port 3001
@@ -23,6 +23,7 @@ if ($processId) {
 }
 
 # Install dependencies and build
+Write-Host "Installing dependencies and building..."
 npm install
 npm run build
 
@@ -44,22 +45,40 @@ if (-not $nssmPath) {
 $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
 
 if ($service) {
-    # Stop and remove existing service
-    Stop-Service -Name $serviceName
+    Write-Host "Stopping and removing existing service..."
+    Stop-Service -Name $serviceName -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 2
     sc.exe delete $serviceName
+    Start-Sleep -Seconds 2
 }
 
+Write-Host "Creating new service..."
 # Create new service using NSSM
 nssm install $serviceName $nodePath $scriptPath
 nssm set $serviceName Description $serviceDescription
 nssm set $serviceName AppDirectory $workingDirectory
 nssm set $serviceName AppEnvironmentExtra "NODE_ENV=production"
 nssm set $serviceName Start SERVICE_AUTO_START
+nssm set $serviceName ObjectName LocalSystem
+nssm set $serviceName AppStdout "$workingDirectory\service.log"
+nssm set $serviceName AppStderr "$workingDirectory\error.log"
 
-# Start the service
+Write-Host "Starting service..."
 Start-Service -Name $serviceName
+Start-Sleep -Seconds 5
 
-Write-Host "Deployment complete. Service is running at http://KFG_Server:3001"
+# Check service status
+$service = Get-Service -Name $serviceName
+Write-Host "Service Status: $($service.Status)"
+
+if ($service.Status -ne "Running") {
+    Write-Host "Service failed to start. Checking logs..."
+    if (Test-Path "$workingDirectory\error.log") {
+        Get-Content "$workingDirectory\error.log" -Tail 20
+    }
+}
+
+Write-Host "`nDeployment complete. Service should be running at http://KFG_Server:3001"
 Write-Host "To check service status: Get-Service -Name $serviceName"
 
 # Create an update script for future updates
@@ -76,7 +95,7 @@ Write-Host "Building application..."
 npm run build
 
 Write-Host "Restarting service..."
-Restart-Service CRMPopService
+Restart-Service $serviceName
 
 Write-Host "Update complete!"
 "@ | Out-File -FilePath "update.ps1" -Encoding UTF8
