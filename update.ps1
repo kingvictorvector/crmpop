@@ -1,70 +1,29 @@
-# Update script
+# Update script for CRM Pop service
 $ErrorActionPreference = "Stop"
 
-Write-Host "Stopping CRMPopService..."
-Stop-Service CRMPopService -Force
+# Define paths
+$serverPath = "C:\CRMPop"  # The path where the service runs from
 
-Write-Host "Pulling latest changes from Git..."
-git fetch
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Git fetch failed"
-    exit 1
+# Create server directory if it doesn't exist
+if (-not (Test-Path $serverPath)) {
+    New-Item -ItemType Directory -Path $serverPath -Force
 }
 
-git reset --hard origin/main
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Git reset failed"
-    exit 1
+# Copy files to server location
+Write-Host "Copying files to server location..."
+Copy-Item "test-redirect.cjs" -Destination $serverPath -Force
+Copy-Item "index.html" -Destination $serverPath -Force
+Copy-Item "package.json" -Destination $serverPath -Force
+Copy-Item ".env" -Destination $serverPath -Force
+
+# Install dependencies if node_modules doesn't exist
+if (-not (Test-Path "$serverPath\node_modules")) {
+    Write-Host "Installing dependencies..."
+    Set-Location $serverPath
+    npm install
 }
 
-Write-Host "Installing dependencies..."
-# Force TypeScript to version 4.9.5 for react-scripts compatibility
-npm install typescript@4.9.5 --save-exact
-npm install --verbose
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "npm install failed"
-    exit 1
-}
-
-Write-Host "Cleaning previous build..."
-if (Test-Path "dist") {
-    Remove-Item -Recurse -Force dist
-}
-if (Test-Path "build") {
-    Remove-Item -Recurse -Force build
-}
-
-Write-Host "Building client..."
-$env:CI = "false"  # Prevents treating warnings as errors
-$env:SKIP_PREFLIGHT_CHECK = "true"  # Skip TypeScript version check
-npm run build:client --verbose
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Client build failed"
-    exit 1
-}
-
-Write-Host "Building server..."
-npm run build:server --verbose
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Server build failed"
-    exit 1
-}
-
-Write-Host "Verifying build output..."
-if (-not (Test-Path "dist/server/server.js")) {
-    Write-Error "Build failed: server.js not found in dist/server folder"
-    exit 1
-}
-
-Write-Host "Starting service..."
-Start-Service CRMPopService
-Start-Sleep -Seconds 5  # Give the service time to start
-$service = Get-Service CRMPopService
-if ($service.Status -ne "Running") {
-    Write-Error "Service failed to start. Status: $($service.Status)"
-    Write-Host "Checking Windows Event Log for errors..."
-    Get-EventLog -LogName Application -Source "CRMPopService" -Newest 10
-    exit 1
-}
-
-Write-Host "Update complete! Service is running."
+Write-Host "Update complete!"
+Write-Host "You can access the application at:"
+Write-Host "http://localhost:3001/crmpop/redirect/`$PHONENUMBER"
+Write-Host "Example: http://localhost:3001/crmpop/redirect/`$2065550199"
