@@ -1,92 +1,105 @@
-# CRM Pop Service
+# CRM Screen Pop Tool
 
-A lightweight Node.js service that redirects phone numbers to their corresponding CRM URLs. This service is designed to run on an internal network and provide quick access to CRM records based on phone numbers.
+## Overview
+This tool provides a simple Node.js/HTML interface for mapping phone numbers to CRM URLs (Redtail CRM), supporting batch upload, search, and redirect functionality. It connects to a SQL Server database and can be run locally or deployed on a LAN server.
 
-## Current Status (Last Updated)
+## Features
+- Add, update, and delete phone-to-CRM URL entries
+- Batch upload via CSV
+- Test redirect for a phone number
+- Multi-select delete
+- Supports direct URL requests: `/client/$PHONENUMBER` for CRM pop
 
-✅ **What's Working:**
-- Basic Node.js server running on port 3001
-- Database connection to KFG_Server\SQLEXPRESS confirmed
-- Phone number to CRM URL redirection working
-- Simple HTML interface added
-- Deployment script (update.ps1) updated for simplified service
+## Local Development Setup
 
-🔄 **Last Known State:**
-- Server responds to URLs in format: `http://localhost:3001/crmpop/redirect/$PHONENUMBER`
-- Test phone number (2065550199) redirects to https://test-crm.com/contact/test123
-- All changes pushed to git repository
+1. **Clone the repository:**
+   ```sh
+   git clone <your-repo-url>
+   cd <your-repo-directory>
+   ```
 
-## Resuming Development
+2. **Install dependencies:**
+   ```sh
+   npm install
+   ```
 
-### 1. Local Development Machine
-```powershell
-# Clone repository if starting fresh, or pull if existing:
-git pull
+3. **Set up your `.env` file:**
+   Create a `.env` file in the project root with:
+   ```env
+   DB_HOST=localhost
+   DB_PORT=1433
+   DB_NAME=KingVVApp
+   DB_USER=KingVictorVector
+   DB_PASSWORD=your_password_here
+   PORT=3001
+   NODE_ENV=development
+   ```
 
-# Start the server:
-node test-redirect.cjs
+4. **Set up SQL Server:**
+   - Install SQL Server Express (if not already installed)
+   - Create the `KingVVApp` database
+   - Ensure the `entries` table exists:
+     ```sql
+     CREATE TABLE entries (
+         phone VARCHAR(20) PRIMARY KEY,
+         url VARCHAR(500) NOT NULL
+     );
+     ```
+   - Create the SQL login `KingVictorVector` and grant access.
 
-# Test the service:
-http://localhost:3001/crmpop/redirect/$2065550199
-```
+5. **Run the server:**
+   ```sh
+   node server.cjs
+   ```
+   The app will be available at [http://localhost:3001](http://localhost:3001)
 
-### 2. Server Deployment
-```powershell
-# Pull latest changes:
-git pull
+## Usage
+- **Web UI:** Add, batch upload, delete, and test entries via the browser.
+- **Direct URL pop:**
+  - Use `http://localhost:3001/client/$PHONENUMBER` to trigger a CRM redirect for a given phone number.
 
-# Run deployment script:
-.\update.ps1
-```
+## Deployment on LAN Server
 
-## Essential Files
+When ready to deploy on your LAN server:
 
-- `test-redirect.cjs` - Main server file
-- `index.html` - Simple interface
-- `package.json` - Dependencies
-- `.env` - Database configuration (not in git)
-- `update.ps1` - Deployment script
+1. **Pull the latest code:**
+   ```sh
+   git pull origin main
+   ```
+2. **Update the `.env` file** with your server's SQL Server settings:
+   ```env
+   DB_HOST=KFG_Server
+   DB_INSTANCE=SQLEXPRESS  # or DB_PORT=1433 if using a static port
+   DB_NAME=KingVVApp
+   DB_USER=KingVictorVector
+   DB_PASSWORD=your_server_password
+   PORT=3001
+   NODE_ENV=production
+   ```
+3. **Ensure SQL Server is running and accessible**
+   - Enable TCP/IP in SQL Server Configuration Manager
+   - Start SQL Server Browser if using named instances
+   - Confirm firewall allows traffic on the SQL port
 
-## Database Configuration
+4. **Run the server:**
+   ```sh
+   node server.cjs
+   ```
 
-The `.env` file should contain:
-```env
-DB_USER=your_username
-DB_PASSWORD=your_password
-DB_HOST=KFG_Server\SQLEXPRESS
-DB_NAME=KingVVApp
-```
+5. **Access the app from LAN:**
+   - Use the server's IP address, e.g. `http://<server-ip>:3001`
+   - Use `/client/$PHONENUMBER` for direct CRM pop
 
-## URL Patterns
-
-- Root interface: `http://localhost:3001/`
-- Redirect format: `http://localhost:3001/crmpop/redirect/$PHONENUMBER`
-- Example: `http://localhost:3001/crmpop/redirect/$2065550199`
-
-## Next Steps
-
-1. **Testing Needed:**
-   - Verify redirects work on server machine
-   - Test access from other machines on LAN
-   - Confirm database queries with different phone numbers
-
-2. **Potential Improvements:**
-   - Add logging for troubleshooting
-   - Implement error handling pages
-   - Add Windows Service setup for automatic startup
+## Notes
+- All phone numbers should be 10 digits, no spaces or special characters.
+- CRM URLs should be in the format: `https://crm.redtailtechnology.com/contacts/2726`
+- For batch upload, use a CSV with lines like: `2063246789,https://crm.redtailtechnology.com/contacts/2726`
 
 ## Troubleshooting
+- If you get a login error, double-check your `.env` credentials and SQL login permissions.
+- If delete or batch upload fails, check for spaces or formatting issues in phone numbers.
+- Use browser dev tools and backend logs for debugging.
 
-1. If server won't start:
-   - Check if port 3001 is available
-   - Verify database credentials in .env
-   - Ensure SQL Server is running
+---
 
-2. If redirects aren't working:
-   - Verify phone number exists in database
-   - Check network connectivity
-   - Review server logs
-
-## Support
-
-For internal support or questions, contact the development team. 
+**Ready to deploy!** 

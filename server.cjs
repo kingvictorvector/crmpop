@@ -1,3 +1,11 @@
+require('dotenv').config();
+
+console.log('DB_USER:', process.env.DB_USER);
+console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? '***' : 'NOT SET');
+console.log('DB_HOST:', process.env.DB_HOST);
+console.log('DB_PORT:', process.env.DB_PORT);
+console.log('DB_NAME:', process.env.DB_NAME);
+
 const sql = require('mssql');
 const http = require('http');
 const fs = require('fs');
@@ -5,12 +13,12 @@ const path = require('path');
 
 // Database configuration
 const config = {
-    user: 'KingVictorVector',
-    password: 'my secure password',
-    server: 'KFG_Server',
-    database: 'KingVVApp',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    server: process.env.DB_HOST,
+    database: process.env.DB_NAME,
     options: {
-        instanceName: 'SQLEXPRESS',
+        port: parseInt(process.env.DB_PORT, 10),
         trustServerCertificate: true,
         encrypt: false
     }
@@ -70,6 +78,29 @@ function router(req, res) {
         return;
     }
 
+    // Handle /client/$PHONENUMBER redirect
+    if (method === 'GET' && url.pathname.startsWith('/client/$')) {
+        const phone = url.pathname.split('/')[2].replace(/^\$/, '');
+        sql.connect(config).then(pool => {
+            return pool.request()
+                .input('phone', sql.VarChar, phone)
+                .query('SELECT url FROM entries WHERE phone = @phone');
+        }).then(result => {
+            if (result.recordset.length > 0) {
+                res.writeHead(302, { 'Location': result.recordset[0].url });
+                res.end();
+            } else {
+                res.writeHead(404);
+                res.end('No CRM URL found for this phone number');
+            }
+        }).catch(err => {
+            console.error('Database error:', err);
+            res.writeHead(500);
+            res.end('Server error');
+        });
+        return;
+    }
+
     // API endpoints
     if (url.pathname === '/api/entries') {
         if (method === 'GET') {
@@ -93,36 +124,53 @@ function router(req, res) {
                 body += chunk.toString();
             });
             req.on('end', () => {
-                const { phone, url } = JSON.parse(body);
+                let { phone, url } = JSON.parse(body);
+                phone = phone.replace(/^"|"$/g, '');
+                url = url.replace(/^"|"$/g, '');
                 sql.connect(config).then(pool => {
                     return pool.request()
                         .input('phone', sql.VarChar, phone)
                         .input('url', sql.VarChar, url)
-                        .query('INSERT INTO entries (phone, url) VALUES (@phone, @url)');
+                        .query(`MERGE INTO entries AS target
+                                USING (SELECT @phone AS phone, @url AS url) AS source
+                                ON target.phone = source.phone
+                                WHEN MATCHED THEN
+                                    UPDATE SET url = source.url
+                                WHEN NOT MATCHED THEN
+                                    INSERT (phone, url) VALUES (source.phone, source.url);`);
                 }).then(() => {
                     res.writeHead(201, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ message: 'Entry added' }));
+                    res.end(JSON.stringify({ message: 'Entry added or updated' }));
                 }).catch(err => {
                     console.error('Database error:', err);
-                    res.writeHead(500);
-                    res.end(JSON.stringify({ error: 'Failed to add entry' }));
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'Failed to add or update entry' }));
                 });
             });
             return;
         }
+    }
 
+    if (url.pathname.startsWith('/api/entries/')) {
         if (method === 'DELETE') {
-            const phone = url.pathname.split('/')[3];
+            let phone = url.pathname.split('/')[3];
+            phone = String(phone).replace(/^"|"$/g, '').trim();
+            console.log('Deleting phone:', phone);
             sql.connect(config).then(pool => {
                 return pool.request()
                     .input('phone', sql.VarChar, phone)
                     .query('DELETE FROM entries WHERE phone = @phone');
-            }).then(() => {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ message: 'Entry deleted' }));
+            }).then(result => {
+                if (result.rowsAffected[0] === 0) {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'Entry not found' }));
+                } else {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ message: 'Entry deleted' }));
+                }
             }).catch(err => {
                 console.error('Database error:', err);
-                res.writeHead(500);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'Failed to delete entry' }));
             });
             return;
@@ -130,8 +178,8 @@ function router(req, res) {
     }
 
     // Handle 404
-    res.writeHead(404);
-    res.end('Not found');
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Not found' }));
 }
 
 // Test database connection and start server
