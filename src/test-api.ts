@@ -1,6 +1,6 @@
-import axios from 'axios';
-import dotenv from 'dotenv';
-import path from 'path';
+const axios = require('axios');
+const dotenv = require('dotenv');
+const path = require('path');
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
