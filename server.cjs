@@ -198,9 +198,9 @@ sql.connect(config).then(() => {
     `;
 }).then(() => {
     const server = http.createServer(router);
-    const port = 3001;
-    server.listen(port, () => {
-        console.log(`Server running at http://localhost:${port}`);
+    const port = process.env.PORT || 3001;
+    server.listen(port, '0.0.0.0', () => {
+        console.log(`Server running at http://0.0.0.0:${port}`);
     });
 }).catch(err => {
     console.error('Failed to start server:', err);
