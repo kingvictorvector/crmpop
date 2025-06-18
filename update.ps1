@@ -36,6 +36,16 @@ try {
     Pop-Location
 }
 
+# Stop any existing node processes on port 3001
+$existing = Get-Process node -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "*node.exe" }
+if ($existing) {
+    $existing | Stop-Process -Force
+}
+
+# Start the Node.js server in the background
+Start-Process "node" "server.cjs" -WorkingDirectory "C:\CRMPop"
+Write-Host "Node.js server started."
+
 # Start the service
 if ($service) {
     Write-Host "Starting CRMPopService..."
