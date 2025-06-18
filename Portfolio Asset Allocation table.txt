@@ -1,0 +1,24 @@
+Portfolio Performance Trailing Year
+Time Period: 6/10/2024 to 6/9/2025
+...
+Time Weighted Return %		11.68
+Benchmark Return %		13.84
+
+
+
+Portfolio Performance YTD
+Time Period: 1/1/2025 to 6/9/2025
+Time Weighted Return %		5.48
+Benchmark Return %		2.72
+
+Portfolio Asset Allocation
+As of Date: 6/9/2025
+% Assets Market
+Value
+Cash				1.14	49,262.89
+US Stock			65.60	2,830,914.95
+Non US Stock			29.07 	1,254,483.86
+Bond				4.11 	177,234.19	
+
+
+

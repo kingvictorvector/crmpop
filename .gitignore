@@ -1,5 +1,5 @@
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.js
 
@@ -38,4 +38,14 @@ yarn-error.log*
 debug.log
 
 # Test data
-test-*.csv 
+test-*.csv
+
+# Environment variables
+.env
+
+# Logs
+*.log
+logs/
+
+# OS
+Thumbs.db 
