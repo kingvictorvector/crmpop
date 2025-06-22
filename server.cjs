@@ -8,6 +8,7 @@ console.log('DB_NAME:', process.env.DB_NAME);
 
 const sql = require('mssql');
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
@@ -197,11 +198,36 @@ sql.connect(config).then(() => {
         END
     `;
 }).then(() => {
-    const server = http.createServer(router);
     const port = process.env.PORT || 3001;
-    server.listen(port, '0.0.0.0', () => {
-        console.log(`Server running at http://0.0.0.0:${port}`);
-    });
+    const certPath = 'C:\\certs\\server.pfx';
+    const certPassword = 'YourPassword123!';
+    
+    // Check if certificate exists
+    if (fs.existsSync(certPath)) {
+        console.log('Certificate found, starting HTTPS server...');
+        
+        // Read certificate file
+        const pfx = fs.readFileSync(certPath);
+        
+        // Create HTTPS server
+        const httpsServer = https.createServer({
+            pfx: pfx,
+            passphrase: certPassword
+        }, router);
+        
+        httpsServer.listen(port, '0.0.0.0', () => {
+            console.log(`HTTPS Server running at https://kfg_server:${port}`);
+        });
+    } else {
+        console.log('Certificate not found, starting HTTP server...');
+        
+        // Create HTTP server as fallback
+        const httpServer = http.createServer(router);
+        
+        httpServer.listen(port, '0.0.0.0', () => {
+            console.log(`HTTP Server running at http://kfg_server:${port}`);
+        });
+    }
 }).catch(err => {
     console.error('Failed to start server:', err);
     process.exit(1);

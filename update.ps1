@@ -59,5 +59,6 @@ if ($service) {
 
 Write-Host "`nUpdate complete!"
 Write-Host "You can access the service at:"
-Write-Host "http://KFG_Server:3001"
-Write-Host "Example redirect: http://KFG_Server:3001/client/`$2065550199"
+Write-Host "HTTPS: https://kfg_server:3001"
+Write-Host "HTTP:  http://kfg_server:3001"
+Write-Host "Example redirect: https://kfg_server:3001/client/`$2065550199"
