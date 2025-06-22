@@ -102,7 +102,7 @@
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script>
-        const API_URL = 'http://localhost:3001/api';
+        const API_URL = 'https://kfg_server:3001/api';
         let table;
 
         // Initialize DataTable
@@ -168,7 +168,7 @@
         $('#testForm').submit((e) => {
             e.preventDefault();
             const phone = $('#testPhone').val();
-            window.open(`http://localhost:3001/redirect/${phone}`, '_blank');
+            window.open(`https://kfg_server:3001/redirect/${phone}`, '_blank');
         });
 
         // Multi-delete
